@@ -1,3 +1,3 @@
-# projet-red_NOM-DU-PROJET
+# projet-red_pierre_feuille_ciseau
 Projet jeu red
  
