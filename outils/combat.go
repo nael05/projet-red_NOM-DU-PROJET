@@ -5,6 +5,7 @@ import (
 	"math/rand"
 )
 
+// boucle de combat qui verifie qui gagne qui a utilisé quelle attaque et quelle potions, et gère le stysteme de PV
 func Combat(j *Perso, ordi *Perso) string {
 	manche := 1
 	var potionUtilisee, potionOrdi string

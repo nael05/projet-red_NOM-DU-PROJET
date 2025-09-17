@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 )
-
+// affiche le menu de depart au lancement du jeu
 func Menu() {
 	for {
 		fmt.Println("\n===== MENU =====")

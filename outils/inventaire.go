@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 )
-
+//Boutique est utilisé par le joueur pour acheté ses potions et se creer un inventaire 
 func Boutique(j *Perso) {
 	solde := j.Pieces
 
@@ -73,7 +73,7 @@ func Boutique(j *Perso) {
 	fmt.Println("\nInventaire final :", j.Inventaire)
 	fmt.Println("Solde final :", j.Pieces)
 }
-
+// genere un inventaire aléatoire pour l'ordi
 func GenererInventaireOrdi() Perso {
 	ordi := Perso{
 		Nom:        "Ordinateur",
