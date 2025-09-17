@@ -5,24 +5,24 @@ import (
 )
 
 type Perso struct {
-	nom        string
-	niveau     int
-	pvmax      int
-	pv         int
-	inventaire []string
-	pieces     int
+	Nom        string
+	Niveau     int
+	PvMax      int
+	Pv         int
+	Inventaire []string
+	Pieces     int
 }
 
 func (p *Perso) InitCharacter() {
 	fmt.Print("Entre ton nom : ")
-	fmt.Scanln(&p.nom)
-	p.niveau = 1
-	p.pvmax = 100
-	p.pv = 100
-	p.pieces = 1000
+	fmt.Scanln(&p.Nom)
+	p.Niveau = 1
+	p.PvMax = 100
+	p.Pv = 100
+	p.Pieces = 1000
 }
 
 func Printcharactere(joueur Perso) {
-	fmt.Println("\nBienvenue,", joueur.nom, "!")
-	fmt.Println("\nPV restant :", joueur.pv, "        Solde :", joueur.pieces)
+	fmt.Println("\nBienvenue,", joueur.Nom, "!")
+	fmt.Println("\nPV restant :", joueur.Pv, "        Solde :", joueur.Pieces)
 }

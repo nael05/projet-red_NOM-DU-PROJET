@@ -1,6 +1,9 @@
 package main
 
-import ("jeu/outils")
+import (
+
+	"jeu/outils"
+)
 
 func main() {
 	outils.ClearScreen()
@@ -11,5 +14,8 @@ func main() {
 	joueur.InitCharacter()
 	outils.Printcharactere(joueur)
 	outils.Boutique(&joueur)
-	outils.Combat(j *Perso, ordi *Perso)
+
+	// Création d’un adversaire
+	ordi := outils.GenererInventaireOrdi()
+	outils.Combat(&joueur, &ordi)
 }
