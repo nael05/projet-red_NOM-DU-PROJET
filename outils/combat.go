@@ -5,13 +5,13 @@ import (
 	"math/rand"
 )
 
-// boucle de combat qui verifie qui gagne qui a utilisé quelle attaque et quelle potions, et gère le stysteme de PV
 func Combat(j *Perso, ordi *Perso) string {
 	manche := 1
 	var potionUtilisee, potionOrdi string
 	poisonToursJoueur, poisonToursOrdi := 0, 0
 	poisonDegat := 5
 	voyanceActive := false
+	var prediction string
 	vengeanceActiveJoueur, vengeanceActiveOrdi := false, false
 	attaques := []string{"🪨", "🍃", "✂️"}
 
@@ -22,6 +22,7 @@ func Combat(j *Perso, ordi *Perso) string {
 		fmt.Println("---------- Manche", manche, "----------")
 		manche++
 
+		// prédiction si voyance activée
 		if voyanceActive {
 			fmt.Println("Voyance activée ! Devine l'attaque de l'ennemi (1-🪨, 2-🍃, 3-✂️) :")
 			for i, a := range attaques {
@@ -31,13 +32,14 @@ func Combat(j *Perso, ordi *Perso) string {
 			var c int
 			fmt.Scanln(&c)
 			if c >= 1 && c <= 3 {
-				attaques[0] = attaques[c-1]
+				prediction = attaques[c-1]
 			} else {
-				attaques[0] = attaques[rand.Intn(3)]
+				prediction = attaques[rand.Intn(3)]
 			}
 			voyanceActive = false
 		}
 
+		// choix du joueur
 		fmt.Println("\nOptions :")
 		fmt.Println("1 : 🪨\t2 : 🍃\t3 : ✂️\t4 : Inventaire")
 		fmt.Print("Ton choix : ")
@@ -50,7 +52,6 @@ func Combat(j *Perso, ordi *Perso) string {
 				fmt.Println("Ton inventaire est vide ! Choisis une attaque (1-3).")
 				continue
 			}
-
 			fmt.Println("\n------ INVENTAIRE ------")
 			for i, p := range j.Inventaire {
 				fmt.Printf("%d : %s\n", i+1, p)
@@ -95,10 +96,10 @@ func Combat(j *Perso, ordi *Perso) string {
 
 		attaqueJoueur := attaques[choix-1]
 
+		// choix ordi
 		choixOrdi := rand.Intn(4)
 		potionOrdi = ""
 		var attaqueOrdi string
-
 		if choixOrdi == 3 && len(ordi.Inventaire) > 0 {
 			pIndex := rand.Intn(len(ordi.Inventaire))
 			potionOrdi = ordi.Inventaire[pIndex]
@@ -118,7 +119,8 @@ func Combat(j *Perso, ordi *Perso) string {
 				vengeanceActiveOrdi = true
 				fmt.Println("Ordinateur active Potion vengeance")
 			case "Potion voyance":
-				fmt.Println("Ordinateur active Potion voyance")
+				fmt.Println("Ordinateur active Potion voyance (il devine ton attaque)")
+				// on pourrait implémenter une prédiction ici aussi
 			}
 			choixOrdi = rand.Intn(3)
 			attaqueOrdi = attaques[choixOrdi]
@@ -126,8 +128,8 @@ func Combat(j *Perso, ordi *Perso) string {
 			attaqueOrdi = attaques[choixOrdi%3]
 		}
 
+		// dégâts
 		degatJoueur, degatOrdi := 0, 0
-
 		if attaqueJoueur == "🪨" && attaqueOrdi == "✂️" {
 			degatJoueur = 12
 		} else if attaqueJoueur == "✂️" && attaqueOrdi == "🍃" {
@@ -135,7 +137,6 @@ func Combat(j *Perso, ordi *Perso) string {
 		} else if attaqueJoueur == "🍃" && attaqueOrdi == "🪨" {
 			degatJoueur = 10
 		}
-
 		if attaqueOrdi == "🪨" && attaqueJoueur == "✂️" {
 			degatOrdi = 12
 		} else if attaqueOrdi == "✂️" && attaqueJoueur == "🍃" {
@@ -160,6 +161,13 @@ func Combat(j *Perso, ordi *Perso) string {
 			poisonToursOrdi--
 		}
 
+		// voyance check
+		if prediction != "" && attaqueOrdi == prediction {
+			fmt.Println("Voyance réussie ! Tu infliges 50 PV supplémentaires.")
+			ordi.Pv -= 50
+			prediction = ""
+		}
+
 		j.Pv -= degatOrdi
 		ordi.Pv -= degatJoueur
 
@@ -174,6 +182,7 @@ func Combat(j *Perso, ordi *Perso) string {
 			vengeanceActiveJoueur = false
 		}
 
+		// affichage résultat
 		fmt.Println("\n------ RÉSULTAT DU TOUR ------")
 		fmt.Println(j.Nom, "a utilisé :", attaqueJoueur)
 		if potionUtilisee != "" {
@@ -182,7 +191,6 @@ func Combat(j *Perso, ordi *Perso) string {
 		if degatJoueur > 0 {
 			fmt.Println("-> inflige", degatJoueur, "PV à l'ordinateur")
 		}
-
 		fmt.Println("\nOrdinateur a utilisé :", attaqueOrdi)
 		if potionOrdi != "" {
 			fmt.Println("+ potion :", potionOrdi)
