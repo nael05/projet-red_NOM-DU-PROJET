@@ -12,7 +12,7 @@ type Perso struct {
 	Inventaire []string
 	Pieces     int
 }
-// InitCharacter récupère le nom entré par le joueur et affecte les valeurs de chaque attribut de la structure Perso
+// InitCharacter récupère le nom entré par le joueur et initialise les valeurs de chaque attribut de la structure Perso
 func (p *Perso) InitCharacter() {
 	fmt.Print("Entre ton nom : ")
 	fmt.Scanln(&p.Nom)
