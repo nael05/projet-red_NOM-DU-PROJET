@@ -12,7 +12,6 @@ func Combat(j *Perso, ordi *Perso) string {
 	poisonDegat := 5
 	voyanceActive := false
 	var prediction string
-	vengeanceActiveJoueur, vengeanceActiveOrdi := false, false
 	attaques := []string{"🪨", "🍃", "✂️"}
 
 	for j.Pv > 0 && ordi.Pv > 0 {
@@ -22,7 +21,6 @@ func Combat(j *Perso, ordi *Perso) string {
 		fmt.Println("---------- Manche", manche, "----------")
 		manche++
 
-		// prédiction si voyance activée
 		if voyanceActive {
 			fmt.Println("Voyance activée ! Devine l'attaque de l'ennemi (1-🪨, 2-🍃, 3-✂️) :")
 			for i, a := range attaques {
@@ -39,13 +37,13 @@ func Combat(j *Perso, ordi *Perso) string {
 			voyanceActive = false
 		}
 
-		// choix du joueur
 		fmt.Println("\nOptions :")
 		fmt.Println("1 : 🪨\t2 : 🍃\t3 : ✂️\t4 : Inventaire")
 		fmt.Print("Ton choix : ")
 		var choix int
 		fmt.Scanln(&choix)
 		potionUtilisee = ""
+		vengeanceActive := false
 
 		if choix == 4 {
 			if len(j.Inventaire) == 0 {
@@ -80,8 +78,8 @@ func Combat(j *Perso, ordi *Perso) string {
 				poisonToursOrdi = 3
 				fmt.Println("Potion poison activée : -5 PV à l'ennemi pendant 3 tours")
 			case "Potion vengeance":
-				vengeanceActiveJoueur = true
-				fmt.Println("Potion vengeance activée : les dégâts reçus seront renvoyés")
+				vengeanceActive = true
+				fmt.Println("Potion vengeance activée : les dégâts reçus seront renvoyés ce tour uniquement")
 			case "Potion voyance":
 				voyanceActive = true
 				fmt.Println("Potion voyance activée ! Tu pourras deviner l'attaque de l'ennemi au prochain tour.")
@@ -96,10 +94,11 @@ func Combat(j *Perso, ordi *Perso) string {
 
 		attaqueJoueur := attaques[choix-1]
 
-		// choix ordi
 		choixOrdi := rand.Intn(4)
 		potionOrdi = ""
-		var attaqueOrdi string
+		attaqueOrdi := attaques[choixOrdi%3]
+		vengeanceOrdi := false
+
 		if choixOrdi == 3 && len(ordi.Inventaire) > 0 {
 			pIndex := rand.Intn(len(ordi.Inventaire))
 			potionOrdi = ordi.Inventaire[pIndex]
@@ -116,19 +115,15 @@ func Combat(j *Perso, ordi *Perso) string {
 				poisonToursJoueur = 3
 				fmt.Println("Ordinateur active Potion poison : -5 PV à toi pendant 3 tours")
 			case "Potion vengeance":
-				vengeanceActiveOrdi = true
+				vengeanceOrdi = true
 				fmt.Println("Ordinateur active Potion vengeance")
 			case "Potion voyance":
-				fmt.Println("Ordinateur active Potion voyance (il devine ton attaque)")
-				// on pourrait implémenter une prédiction ici aussi
+				fmt.Println("Ordinateur active Potion voyance")
 			}
 			choixOrdi = rand.Intn(3)
 			attaqueOrdi = attaques[choixOrdi]
-		} else {
-			attaqueOrdi = attaques[choixOrdi%3]
 		}
 
-		// dégâts
 		degatJoueur, degatOrdi := 0, 0
 		if attaqueJoueur == "🪨" && attaqueOrdi == "✂️" {
 			degatJoueur = 12
@@ -161,41 +156,43 @@ func Combat(j *Perso, ordi *Perso) string {
 			poisonToursOrdi--
 		}
 
-		// voyance check
 		if prediction != "" && attaqueOrdi == prediction {
 			fmt.Println("Voyance réussie ! Tu infliges 50 PV supplémentaires.")
 			ordi.Pv -= 50
 			prediction = ""
 		}
 
-		j.Pv -= degatOrdi
-		ordi.Pv -= degatJoueur
-
-		if vengeanceActiveOrdi && degatJoueur > 0 {
-			fmt.Println("Potion vengeance de l'ordi : il renvoie", degatJoueur, "PV à toi")
-			j.Pv -= degatJoueur
-			vengeanceActiveOrdi = false
-		}
-		if vengeanceActiveJoueur && degatOrdi > 0 {
-			fmt.Println("Potion vengeance : tu renvoies", degatOrdi, "PV à l'ordi")
-			ordi.Pv -= degatOrdi
-			vengeanceActiveJoueur = false
+		if degatOrdi > 0 {
+			if vengeanceActive {
+				fmt.Println("Potion vengeance : tu renvoies", degatOrdi, "PV à l'ordi")
+				ordi.Pv -= degatOrdi
+			} else {
+				j.Pv -= degatOrdi
+			}
 		}
 
-		// affichage résultat
+		if degatJoueur > 0 {
+			if vengeanceOrdi {
+				fmt.Println("Potion vengeance de l'ordi : il te renvoie", degatJoueur, "PV")
+				j.Pv -= degatJoueur
+			} else {
+				ordi.Pv -= degatJoueur
+			}
+		}
+
 		fmt.Println("\n------ RÉSULTAT DU TOUR ------")
 		fmt.Println(j.Nom, "a utilisé :", attaqueJoueur)
 		if potionUtilisee != "" {
 			fmt.Println("+ potion :", potionUtilisee)
 		}
-		if degatJoueur > 0 {
+		if degatJoueur > 0 && !vengeanceActive {
 			fmt.Println("-> inflige", degatJoueur, "PV à l'ordinateur")
 		}
 		fmt.Println("\nOrdinateur a utilisé :", attaqueOrdi)
 		if potionOrdi != "" {
 			fmt.Println("+ potion :", potionOrdi)
 		}
-		if degatOrdi > 0 {
+		if degatOrdi > 0 && !vengeanceOrdi {
 			fmt.Println("-> inflige", degatOrdi, "PV à", j.Nom)
 		}
 
