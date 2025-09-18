@@ -5,14 +5,14 @@ import (
 	"math/rand"
 )
 
+// Combat gère toute la boucle de combat, l'utilisation des potions et le systeme de degats
 func Combat(j *Perso, ordi *Perso) string {
 	manche := 1
-	var potionUtilisee, potionOrdi string
-	poisonToursJoueur, poisonToursOrdi := 0, 0
+	attaques := []string{"🪨", "🍃", "✂️"}
+	poisonJ, poisonO := 0, 0
 	poisonDegat := 5
 	voyanceActive := false
-	var prediction string
-	attaques := []string{"🪨", "🍃", "✂️"}
+	prediction := ""
 
 	for j.Pv > 0 && ordi.Pv > 0 {
 		ClearScreen()
@@ -26,7 +26,6 @@ func Combat(j *Perso, ordi *Perso) string {
 			for i, a := range attaques {
 				fmt.Printf("%d : %s\t", i+1, a)
 			}
-			fmt.Print("\nTon choix : ")
 			var c int
 			fmt.Scanln(&c)
 			if c >= 1 && c <= 3 {
@@ -37,19 +36,15 @@ func Combat(j *Perso, ordi *Perso) string {
 			voyanceActive = false
 		}
 
-		fmt.Println("\nOptions :")
-		fmt.Println("1 : 🪨\t2 : 🍃\t3 : ✂️\t4 : Inventaire")
+		fmt.Println("\n1: 🪨  2: 🍃  3: ✂️  4: Inventaire")
 		fmt.Print("Ton choix : ")
 		var choix int
 		fmt.Scanln(&choix)
-		potionUtilisee = ""
+
+		potionUtilisee := ""
 		vengeanceActive := false
 
-		if choix == 4 {
-			if len(j.Inventaire) == 0 {
-				fmt.Println("Ton inventaire est vide ! Choisis une attaque (1-3).")
-				continue
-			}
+		if choix == 4 && len(j.Inventaire) > 0 {
 			fmt.Println("\n------ INVENTAIRE ------")
 			for i, p := range j.Inventaire {
 				fmt.Printf("%d : %s\n", i+1, p)
@@ -58,10 +53,8 @@ func Combat(j *Perso, ordi *Perso) string {
 			var pChoix int
 			fmt.Scanln(&pChoix)
 			if pChoix < 1 || pChoix > len(j.Inventaire) {
-				fmt.Println("Choix invalide !")
 				continue
 			}
-
 			potionUtilisee = j.Inventaire[pChoix-1]
 			j.Inventaire = append(j.Inventaire[:pChoix-1], j.Inventaire[pChoix:]...)
 
@@ -71,18 +64,14 @@ func Combat(j *Perso, ordi *Perso) string {
 				if j.Pv > j.PvMax {
 					j.Pv = j.PvMax
 				}
-				fmt.Println("Tu gagnes 15 PV !")
 			case "Potion bleu":
-				fmt.Println("Potion bleu activée : +15 dégâts au prochain tour si tu gagnes")
+				fmt.Println("Potion bleu activée")
 			case "Potion poison":
-				poisonToursOrdi = 3
-				fmt.Println("Potion poison activée : -5 PV à l'ennemi pendant 3 tours")
+				poisonO = 3
 			case "Potion vengeance":
 				vengeanceActive = true
-				fmt.Println("Potion vengeance activée : les dégâts reçus seront renvoyés ce tour uniquement")
 			case "Potion voyance":
 				voyanceActive = true
-				fmt.Println("Potion voyance activée ! Tu pourras deviner l'attaque de l'ennemi au prochain tour.")
 			}
 
 			fmt.Print("Choisis ton attaque (1-3) : ")
@@ -92,111 +81,96 @@ func Combat(j *Perso, ordi *Perso) string {
 			}
 		}
 
-		attaqueJoueur := attaques[choix-1]
+		attaqueJ := attaques[choix-1]
 
-		choixOrdi := rand.Intn(4)
-		potionOrdi = ""
-		attaqueOrdi := attaques[choixOrdi%3]
-		vengeanceOrdi := false
-
-		if choixOrdi == 3 && len(ordi.Inventaire) > 0 {
+		choixO := rand.Intn(4)
+		potionO := ""
+		attaqueO := attaques[choixO%3]
+		vengeanceO := false
+		if choixO == 3 && len(ordi.Inventaire) > 0 {
 			pIndex := rand.Intn(len(ordi.Inventaire))
-			potionOrdi = ordi.Inventaire[pIndex]
+			potionO = ordi.Inventaire[pIndex]
 			ordi.Inventaire = append(ordi.Inventaire[:pIndex], ordi.Inventaire[pIndex+1:]...)
-			switch potionOrdi {
+			switch potionO {
 			case "Potion rouge":
 				ordi.Pv += 15
 				if ordi.Pv > ordi.PvMax {
 					ordi.Pv = ordi.PvMax
 				}
 			case "Potion bleu":
-				fmt.Println("Ordinateur active Potion bleu")
 			case "Potion poison":
-				poisonToursJoueur = 3
-				fmt.Println("Ordinateur active Potion poison : -5 PV à toi pendant 3 tours")
+				poisonJ = 3
 			case "Potion vengeance":
-				vengeanceOrdi = true
-				fmt.Println("Ordinateur active Potion vengeance")
+				vengeanceO = true
 			case "Potion voyance":
-				fmt.Println("Ordinateur active Potion voyance")
 			}
-			choixOrdi = rand.Intn(3)
-			attaqueOrdi = attaques[choixOrdi]
+			choixO = rand.Intn(3)
+			attaqueO = attaques[choixO]
 		}
 
-		degatJoueur, degatOrdi := 0, 0
-		if attaqueJoueur == "🪨" && attaqueOrdi == "✂️" {
-			degatJoueur = 12
-		} else if attaqueJoueur == "✂️" && attaqueOrdi == "🍃" {
-			degatJoueur = 11
-		} else if attaqueJoueur == "🍃" && attaqueOrdi == "🪨" {
-			degatJoueur = 10
+		degJ, degO := 0, 0
+		if attaqueJ == "🪨" && attaqueO == "✂️" {
+			degJ = 12
+		} else if attaqueJ == "✂️" && attaqueO == "🍃" {
+			degJ = 11
+		} else if attaqueJ == "🍃" && attaqueO == "🪨" {
+			degJ = 10
 		}
-		if attaqueOrdi == "🪨" && attaqueJoueur == "✂️" {
-			degatOrdi = 12
-		} else if attaqueOrdi == "✂️" && attaqueJoueur == "🍃" {
-			degatOrdi = 11
-		} else if attaqueOrdi == "🍃" && attaqueJoueur == "🪨" {
-			degatOrdi = 10
-		}
-
-		if potionUtilisee == "Potion bleu" && degatJoueur > 0 {
-			degatJoueur += 15
-		}
-		if potionOrdi == "Potion bleu" && degatOrdi > 0 {
-			degatOrdi += 15
+		if attaqueO == "🪨" && attaqueJ == "✂️" {
+			degO = 12
+		} else if attaqueO == "✂️" && attaqueJ == "🍃" {
+			degO = 11
+		} else if attaqueO == "🍃" && attaqueJ == "🪨" {
+			degO = 10
 		}
 
-		if poisonToursJoueur > 0 {
+		if potionUtilisee == "Potion bleu" && degJ > 0 {
+			degJ += 15
+		}
+		if potionO == "Potion bleu" && degO > 0 {
+			degO += 15
+		}
+
+		if poisonJ > 0 {
 			j.Pv -= poisonDegat
-			poisonToursJoueur--
+			poisonJ--
 		}
-		if poisonToursOrdi > 0 {
+		if poisonO > 0 {
 			ordi.Pv -= poisonDegat
-			poisonToursOrdi--
+			poisonO--
 		}
 
-		if prediction != "" && attaqueOrdi == prediction {
-			fmt.Println("Voyance réussie ! Tu infliges 50 PV supplémentaires.")
+		if prediction != "" && attaqueO == prediction {
+			fmt.Println("Voyance réussie ! 50 PV supplémentaires à l'ordi")
 			ordi.Pv -= 50
 			prediction = ""
 		}
 
-		if degatOrdi > 0 {
+		if degO > 0 {
 			if vengeanceActive {
-				fmt.Println("Potion vengeance : tu renvoies", degatOrdi, "PV à l'ordi")
-				ordi.Pv -= degatOrdi
+				ordi.Pv -= degO
 			} else {
-				j.Pv -= degatOrdi
+				j.Pv -= degO
 			}
 		}
 
-		if degatJoueur > 0 {
-			if vengeanceOrdi {
-				fmt.Println("Potion vengeance de l'ordi : il te renvoie", degatJoueur, "PV")
-				j.Pv -= degatJoueur
+		if degJ > 0 {
+			if vengeanceO {
+				j.Pv -= degJ
 			} else {
-				ordi.Pv -= degatJoueur
+				ordi.Pv -= degJ
 			}
 		}
 
 		fmt.Println("\n------ RÉSULTAT DU TOUR ------")
-		fmt.Println(j.Nom, "a utilisé :", attaqueJoueur)
+		fmt.Println(j.Nom, ":", attaqueJ)
 		if potionUtilisee != "" {
-			fmt.Println("+ potion :", potionUtilisee)
+			fmt.Println("Potion :", potionUtilisee)
 		}
-		if degatJoueur > 0 && !vengeanceActive {
-			fmt.Println("-> inflige", degatJoueur, "PV à l'ordinateur")
+		fmt.Println("Ordinateur :", attaqueO)
+		if potionO != "" {
+			fmt.Println("Potion O :", potionO)
 		}
-		fmt.Println("\nOrdinateur a utilisé :", attaqueOrdi)
-		if potionOrdi != "" {
-			fmt.Println("+ potion :", potionOrdi)
-		}
-		if degatOrdi > 0 && !vengeanceOrdi {
-			fmt.Println("-> inflige", degatOrdi, "PV à", j.Nom)
-		}
-
-		fmt.Println("\n========================================")
 		fmt.Print("Appuie sur Entrée pour passer à la manche suivante...")
 		fmt.Scanln()
 	}
